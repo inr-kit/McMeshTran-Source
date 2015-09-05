@@ -157,7 +157,7 @@ ATTENTION: In this following step you need to have Visual Studio 2010. Without i
 	
   * Behind the value of "Target", add " --module=MCMESHTRAN" or "--module=GEOM,SMESH,PARAVIS,MCMESHTRAN"(with a whitespace in the front). Click "OK". Next time you can start McMeshTran with this short-cut link. 
 
-
+-> Notes: it is found that McMeshTran Windows version is failed in sending data to ParaView. We will fix this later. 
 
 **************************************************************************************
 For more information, you can find in our publications.
@@ -168,10 +168,6 @@ For more information, you can find in our publications.
 
 
 Have fun!
-
-
-
-
 
 
 
