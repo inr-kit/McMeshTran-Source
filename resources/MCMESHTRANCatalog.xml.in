@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='us-ascii' ?>
+ 
+<!-- XML component catalog -->
+<begin-catalog>
+
+<!-- Path prefix information -->
+
+<path-prefix-list>
+</path-prefix-list>
+
+<!-- Component list -->
+<component-list>
+        <component>
+                <!-- Component identification -->
+                <component-name>MCMESHTRAN</component-name>
+		<component-username>MCMESHTRAN GUI</component-username>
+                <component-type>Data</component-type>
+                <component-author>SALOME team</component-author>
+                <component-version>0.3.0</component-version>
+                <component-comment>Open CASCADE S.A.S.</component-comment>
+                <component-multistudy>1</component-multistudy>
+                <component-icone>MCMESHTRAN.png</component-icone>
+                <constraint>'linux' ~ OS</constraint>
+	
+	</component>
+</component-list>
+</begin-catalog>

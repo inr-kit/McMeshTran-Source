@@ -1,0 +1,11 @@
+<document>
+  <section name="MCMESHTRAN">
+    <!-- Major module parameters -->
+    <parameter name="name" value="MCMESHTRAN"/>
+    <parameter name="icon" value="MCMESHTRAN.png"/>
+  </section>
+  <section name="resources">
+    <!-- Module resources -->
+    <parameter name="MCMESHTRAN" value="${MCMESHTRAN_ROOT_DIR}/share/salome/resources/MCMESHTRAN"/>
+  </section>
+</document>

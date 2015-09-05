@@ -1,0 +1,159 @@
+// Copyright (C) 2014-2015  KIT-INR/NK
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+//
+//
+
+#ifndef __MCMESHTRAN_GEN__
+#define __MCMESHTRAN_GEN__
+
+#include "SALOME_Component.idl"
+#include "SALOME_Exception.idl"
+#include "MEDCouplingCorbaServant.idl"
+
+
+
+module MCMESHTRAN_ORB
+{
+
+    interface Mesh
+    {
+        string  getName();
+        void    setName(in string Name);
+        long    getID();
+        string  getType();
+        double  getNPS();
+        void    setField(in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface aField);
+        SALOME_MED::MEDCouplingFieldDoubleCorbaInterface  getField();
+        SALOME_MED::MEDCouplingFieldTemplateCorbaInterface  getFieldTemplate();
+
+    };
+
+
+    typedef sequence<Mesh> MeshList;
+
+    interface MeshGroup
+    {
+        string  getName();
+        void    setName(in string Name);
+        long    getID();
+        MeshList    getMeshList();
+        boolean setMeshList(in MeshList aMeshList);
+
+        Mesh    getMesh(in long MeshID) ;
+        boolean appendMesh(in Mesh aMesh);
+        boolean deleteMesh(in long  MeshID);
+        boolean insertMesh(in Mesh aMesh, in long MeshID);
+        boolean clearMeshes();
+        void    appendMeshInGroup (in MeshGroup aGroup);
+    };
+
+
+    typedef sequence<MeshGroup> GroupList;
+
+    typedef double FixArray3[3];
+    enum  SolutionLoc {on_cells, on_nodes};
+    struct PointData
+    {
+        double      X;
+        double      Y;
+        double      Z;
+        double      PowerDensity;
+    };
+
+    interface MCMESHTRAN_Gen : Engines::EngineComponent
+    {
+
+        //set a group list data in into the study
+        boolean     setData ( in long studyID, in GroupList theData);
+        GroupList   getData ( in long studyID) ;
+        //generate an empty group
+        MeshGroup   generateGroup(in string Name)                                       raises (SALOME::SALOME_Exception);
+        //generate a mesh
+        Mesh        generateMesh(in string Name, in string Type,in double nps)          raises (SALOME::SALOME_Exception);
+        //get group according to the id;
+        MeshGroup   getGroup(in long studyID, in long GroupID);
+        //get a mesh according to the Group ID and Mesh ID
+        Mesh        getMesh(in long studyID, in long GroupID, in long MeshID);
+        //deep copy of a mesh
+        Mesh        deepCopyMesh(in Mesh aMesh)                                         raises (SALOME::SALOME_Exception);
+        //append a Group to the end of the Group list in this Stduy
+        boolean     appendGroup(in long studyID, in MeshGroup aGroup);//                   raises (SALOME::SALOME_Exception);
+        //insert a mesh before Mesh with ID = GroupID;
+        boolean     insertGroup (in long studyID,  in MeshGroup aGroup, in long  GroupID);//raises (SALOME::SALOME_Exception);
+         //delete the mesh according to the id
+        boolean     deleteGroup (in long studyID,  in long  GroupID);//                    raises (SALOME::SALOME_Exception);
+        //clear all Group
+        boolean     clearGroup(in long studyID);
+
+        //reader for MCNP mesh tally, needs input file name and Meshtal file name, a group of mesh is outputted.
+        MeshGroup   readMCNPFmesh(in string InputFileName, in string MeshtalFileName)   raises (SALOME::SALOME_Exception);
+        MeshGroup   readMCNPUmesh(in string UMeshOutFileName, in boolean isKeepInstance, in boolean isRemoveMultiplier); // reader for MCNP Unstructured mesh results, not implement at this moment
+        MeshGroup   readTRIPOLIFmesh(in string TRIPOLIFileName, in boolean isVolAvg)  raises (SALOME::SALOME_Exception); //reader for TRIPOLI mesh tally, not implement at this moment
+
+        //check if two mesh are consistent
+        boolean     checkMeshConsistency(in Mesh aMesh,in Mesh bMesh )                  raises (SALOME::SALOME_Exception);
+        //sum two mesh and return new mesh
+        Mesh        sumMeshes(in Mesh aMesh,in Mesh bMesh,in string Name)               raises (SALOME::SALOME_Exception);
+        //average two mesh and return new mesh
+        Mesh        averageMeshes(in Mesh aMesh, in Mesh bMesh, in string Name)         raises (SALOME::SALOME_Exception);
+        //move the mesh according to the vector (a 3 element array)
+        Mesh        translateMesh(in Mesh aMesh, in FixArray3  vector,in  string Name)  raises (SALOME::SALOME_Exception);
+        // rotate the mesh according to the center point, vector as the axis and angle in Radian
+        Mesh        rotateMesh(in Mesh aMesh, in FixArray3 center,in  FixArray3 vector,
+                                in double AngleInRadian,in  string Name )               raises (SALOME::SALOME_Exception);
+        //scale the mesh dimension by factor
+        Mesh        scaleMesh(in Mesh aMesh, in double Factor, in string Name)          raises (SALOME::SALOME_Exception);
+        //multiply the field with a const Factor
+        Mesh        multiplyFactor (in Mesh aMesh, in double Factor, in string Name)    raises (SALOME::SALOME_Exception);
+         // interpolate the source mesh into the target mesh, using MEDCoupling method
+        Mesh        interpolateMEDMesh(in Mesh source, in Mesh target, in string Name,
+                                       in SolutionLoc solloc)                           raises (SALOME::SALOME_Exception);
+//Windows and Linux have conflict in this section.
+//if you are compiling under linux, comment out the line "#ifdef WITH_CGNS" and "#endif "
+//if you are compiling under Windows, DO NOT comment out the line "#ifdef WITH_CGNS" and "#endif "
+//#ifdef WITH_CGNS
+        // interpolate the source mesh into the target mesh, using CGNS method.
+        Mesh        interpolateCGNSMesh(in Mesh source, in Mesh target, in string Name,
+                                       in SolutionLoc solloc)                           raises (SALOME::SALOME_Exception);
+        //export to CGNS format
+        void        export2CGNS (in Mesh aMesh, in string FileName)                     raises (SALOME::SALOME_Exception);
+        // import CGNS mesh
+        MeshGroup   importCGNS(in string CGNSFileName)                                  raises (SALOME::SALOME_Exception);
+//#endif //WITH_CGNS
+        //export to VTK format
+        void        export2VTK (in Mesh aMesh, in string FileName)                      raises (SALOME::SALOME_Exception);
+        //export to MED format
+        void        export2MED (in Mesh aMesh, in string FileName)                      raises (SALOME::SALOME_Exception);
+        //export to CSV format
+        void        export2CSV (in Mesh aMesh, in string FileName)                      raises (SALOME::SALOME_Exception);
+        //export to FLUENT for CFD calculation
+        void        export2FLUENT (in Mesh aMesh, in string FileName)                   raises (SALOME::SALOME_Exception);
+        //export to CFX for CFD calculation
+        void        export2CFX (in Mesh aMesh, in string FileName)                      raises (SALOME::SALOME_Exception);
+         // import mesh data from MED file
+        MeshGroup   importMED(in string MEDFileName)                                    raises (SALOME::SALOME_Exception);
+        // import Abaqus mesh
+        MeshGroup   importAbaqus(in string AbaqusFileName)                                raises (SALOME::SALOME_Exception);
+        void        unittest();
+        //export mesh to abaqus inp file
+        void        exportMesh2Abaqus(in MeshList aMeshList, in string FileName )         raises (SALOME::SALOME_Exception);
+
+
+    };
+
+};
+
+#endif
