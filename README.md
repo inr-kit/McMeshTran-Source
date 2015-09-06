@@ -7,7 +7,7 @@ For any questions related to the use of this software/library you may contact Ul
 **************************************************************************************
 ********Something to know before going on********
 
-It is not necessary to compile McMeshTran in order to use it, because we provided also precompiled McMeshTran binaries. You can find them in  repository [McMeshTran-Binaries](https://github.com/inr-kit/McMeshTran-Binaries). Compile it only if you cannot find precompiled McMeshTran binaries, or you are going to change the source code. 
+It is not necessary to compile McMeshTran in order to use it, because we provided also precompiled McMeshTran binaries. You can find them in  repository [McMeshTran-Binaries](https://github.com/inr-kit/McMeshTran-Binaries). Compile it only if you cannot find precompiled McMeshTran binaries, or you are going to change the source code.For Using McMeshTran, Please find documents on Github repository [McMeshTran-Docs](https://github.com/inr-kit/McMeshTran-Docs). 
 
 This release is tested under Salome_7.4.0. Using other Salome version is not guarantee to work, and might cause error during this process. 
 
