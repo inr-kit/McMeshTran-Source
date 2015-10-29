@@ -3,7 +3,7 @@ McMeshTran: A MC Mesh and data Transformation/ Translation/ Transfer tool
 
 McMeshTran provide post-processing interface for MCNP mesh tally, MCNP6 unstructured mesh output and TRIPOLI mesh tally, and multiphics coupling with Fluent, CFX, and ANSYS Workbench. It provide useful functions such as summing, averaging mesh tally, tranforming mesh and interpolate data. 
 
-For any questions related to the use of this software/library you may contact Ulrich Fischer(ulrich.fischer@kit.edu) or, for technical assistance, Yuefeng Qiu (yuefeng.qiu@kit.edu).
+For any questions related to the use of this software/library you may contact Ulrich Fischer(ulrich.fischer@kit.edu) or, for technical assistance, Yuefeng Qiu (yuefeng.qiu@kit.edu). Please subscribe our mailing list for receiving latest updates and asking question in our [Google group](https://groups.google.com/forum/#!forum/mcmeshtran-users), by send a empty email to  mcmeshtran-users+subscribe@googlegroups.com and reply the comfirmation email.
 **************************************************************************************
 ********Something to know before going on********
 
