@@ -113,7 +113,7 @@ module MCMESHTRAN_ORB
         Mesh        translateMesh(in Mesh aMesh, in FixArray3  vector,in  string Name)  raises (SALOME::SALOME_Exception);
         // rotate the mesh according to the center point, vector as the axis and angle in Radian
         Mesh        rotateMesh(in Mesh aMesh, in FixArray3 center,in  FixArray3 vector,
-                                in double AngleInRadian,in  string Name )               raises (SALOME::SALOME_Exception);
+                                in double AngleInDegree,in  string Name )               raises (SALOME::SALOME_Exception);
         //scale the mesh dimension by factor
         Mesh        scaleMesh(in Mesh aMesh, in double Factor, in string Name)          raises (SALOME::SALOME_Exception);
         //multiply the field with a const Factor
@@ -150,6 +150,8 @@ module MCMESHTRAN_ORB
         void        unittest();
         //export mesh to abaqus inp file
         void        exportMesh2Abaqus(in MeshList aMeshList, in string FileName )         raises (SALOME::SALOME_Exception);
+        //compute the difference  between two mesh tallies
+        Mesh        compareDifference(in Mesh aMesh,in Mesh bMesh,in string Name)               raises (SALOME::SALOME_Exception);
 
 
     };

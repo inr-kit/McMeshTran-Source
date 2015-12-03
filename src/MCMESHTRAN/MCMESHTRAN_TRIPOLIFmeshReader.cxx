@@ -85,7 +85,11 @@ bool  MCMESHTRAN_TRIPOLIFmeshReader::loadFile(const QString &FileName,  const bo
             break;
         case BLOCK_Tally:
             if (ResponseReady && GridsReady && ScoresReady) {
-                if (iBatch == myBatch) //search for the last batch
+                //TRIPOLI will output results in  every 100 batch
+                //it is possible that the results is in 100 batch or in the final batch
+                //try to load the results in every 100 batch and also the final batch
+                //the later result will ovewrite the older result
+//comment out, new way of implelementation. if (iBatch == myBatch || (iBatch % 100) == 0) //search for the last batch
                     if (!readTallies()) return false;
             }
             else {
@@ -753,6 +757,12 @@ bool        MCMESHTRAN_TRIPOLIFmeshReader::createMesh (const T4SCORE & aScore, v
  */
 bool MCMESHTRAN_TRIPOLIFmeshReader::readTallies()
 {
+    //TRIPOLI will output results in  every 100 batch
+    //we have to clear the results before getting the result in the final batch
+//    for (int i=0; i<myTallyErrorList.size(); i++)
+//        myTallyErrorList.at(i)->decrRef();
+//    myTallyErrorList.clear();
+
     //skip lines before the line "Energy range (in MeV)..."
     getLine();
     getLine();
@@ -810,13 +820,18 @@ bool        MCMESHTRAN_TRIPOLIFmeshReader::processResults(const bool & isVolAvg)
         //check also the energy bins
         NbTallies += myScores.at(i).Grid.List.size() -1;
     }
-    if (myTallyErrorList.size() != NbTallies) {
-        MESSAGE ("##Error MCMESHTRAN_TRIPOLIFmeshReader::processResults: Number of tallies read not match with what expected for scores!");
+    if (myTallyErrorList.size() < NbTallies) {
+        MESSAGE ("##Error MCMESHTRAN_TRIPOLIFmeshReader::processResults: processed number of mesh tallies might be wrong!");
         return false;
+    }
+    if (myTallyErrorList.size() != NbTallies) {
+        MESSAGE ("##Warning MCMESHTRAN_TRIPOLIFmeshReader::processResults: Number of tallies read not match with what expected for scores! Only the results at last will be processed.");
+//        return false;
     }
 
     //loop the score to build fields
-    int fieldIdx =0; //index for myTallyErrorList;
+//    int fieldIdx =0; //index for myTallyErrorList;
+    int fieldIdx = myTallyErrorList.size() - NbTallies; //index for myTallyErrorList; change to be adaptive to strange output format in TRIPOLI
     for (int i=0; i<myScores.size(); i++)
     {
         QString aFieldName;

@@ -209,6 +209,7 @@ bool    MCMESHTRAN_AbaqusMeshReader::read_part()  //read a part and return as a 
     AbqLineType theType = getLineAndCheck();
     AbqKeyType theKey;
     bool Ok = true;// to see if read nodes and elements correct
+    int aInitNodeIdx = 1;
     while (!isEndofPart)
     {
         switch (theType)
@@ -218,10 +219,10 @@ bool    MCMESHTRAN_AbaqusMeshReader::read_part()  //read a part and return as a 
             switch (theKey)
             {
             case Key_node :
-                Ok = read_nodes(aCorVec);
+                Ok = read_nodes(aCorVec, aInitNodeIdx);
                 break;
             case Key_element:
-                Ok = read_elements(Connectivity, NodalConnIndex);
+                Ok = read_elements(Connectivity, NodalConnIndex, aInitNodeIdx);
                 break;
             case Key_part_end:
                 isEndofPart = true;
@@ -297,12 +298,13 @@ bool    MCMESHTRAN_AbaqusMeshReader::read_part()  //read a part and return as a 
  * \param the MED array to output data
  * \return \c true if success, \c false if error
  */
-bool  MCMESHTRAN_AbaqusMeshReader::read_nodes (vector <double > & aCorVec)  //read node and return the node list
+bool  MCMESHTRAN_AbaqusMeshReader::read_nodes (vector <double > & aCorVec, int &aInitNodeIdx)  //read node and return the node list
 {
     AbqLineType theType = getLineAndCheck();
     QString aTmpStr;
     QStringList aStringList;
     bool isOk;
+    aInitNodeIdx = 1e8; //just a big number
     while (theType != Line_eof && theType != Line_keyword)
     {
         switch (theType)
@@ -313,6 +315,8 @@ bool  MCMESHTRAN_AbaqusMeshReader::read_nodes (vector <double > & aCorVec)  //re
             aTmpStr = aTmpStr.replace(","," "); // replace "," with " "
             aStringList = aTmpStr.trimmed().split(" ", QString::SkipEmptyParts);
             if (aStringList.size() == 4) { // a line should include : index, x, y, z
+                int aIndex = aStringList[0].toInt(&isOk);
+                if (aInitNodeIdx > aIndex)  aInitNodeIdx = aIndex ;  //a study way to get the initial index, but does not matter
                 for (int i=1; i<4; i++) {
                     aCorVec.push_back(aStringList[i].toDouble(&isOk)); //x,y,z
                     if (!isOk) {
@@ -354,7 +358,7 @@ bool  MCMESHTRAN_AbaqusMeshReader::read_nodes (vector <double > & aCorVec)  //re
  * \param theConnIndex the connectivity index, indexing the position of the beginning of every element
  * \return  \c true if success, \c false if error
  */
-bool    MCMESHTRAN_AbaqusMeshReader::read_elements(vector <int> & Connectivity, vector <int> & NodalConnIndex)  //read the element connectivities and return the list
+bool    MCMESHTRAN_AbaqusMeshReader::read_elements(vector <int> & Connectivity, vector <int> & NodalConnIndex, const int &aInitNodeIdx)  //read the element connectivities and return the list
 {
     //get the abaqus element type
     QString aTmpStr = QString::fromStdString(currentLine).trimmed();
@@ -404,8 +408,9 @@ bool    MCMESHTRAN_AbaqusMeshReader::read_elements(vector <int> & Connectivity, 
             NodalConnIndex.push_back(Connectivity.size() - 1); // put the index of this cell in Connectivity array into index array
             if (aStringList.size() == theNodeNb + 1) { // a line should include : index, conns...
                 for (int i=1; i<=theNodeNb; i++) { //start from 1 to skip the element index,
-                    Connectivity.push_back(aStringList[i].toInt(&isOk) -1); //IMPORTANT!! MED nodal index start from 0, but abaqus from 1!
-                    if (!isOk) {
+//                    Connectivity.push_back(aStringList[i].toInt(&isOk) -1); //IMPORTANT!! MED nodal index start from 0, but abaqus from 1!
+                      Connectivity.push_back(aStringList[i].toInt(&isOk) - aInitNodeIdx); //IMPORTANT!! MED nodal index start from 0, but abaqus from 1!aInitNodeIdx is usually 1.
+                      if (!isOk) {
                         MESSAGE("Error in File "<<myAbqFileName.toStdString() <<endl<<"line "
                                 << lineNum << ": unknown error in this line!" );
                         return false;

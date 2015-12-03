@@ -304,4 +304,18 @@ private:
     QString LastDir;
 };
 
+
+//#############CompareDifferenceOp###############//
+class MCMESHTRANGUI_CompareDifferenceOp: public MCMESHTRANGUI_Operation
+{
+    Q_OBJECT
+public:
+    MCMESHTRANGUI_CompareDifferenceOp();
+    virtual ~MCMESHTRANGUI_CompareDifferenceOp();
+    virtual MCMESHTRANGUI_TemplateDlg* dlg() const;
+protected slots:
+  virtual void onApply();
+};
+
+
 #endif // MCMESHTRANGUI_OPERATIONIMPL_HXX

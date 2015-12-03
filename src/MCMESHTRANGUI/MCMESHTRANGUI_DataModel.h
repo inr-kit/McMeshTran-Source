@@ -104,6 +104,7 @@ public:
   bool                  importSTLMeshOnly (const QString& FileName,const int GroupID = -1 );
 
   bool                  sendMesh2SMESH(const QStringList& aList);
+  bool                  compareDifference(const QString& aEntry,  const QString& bEntry, const QString& Name, const int GroupID  );
 
 
   void                  deleteGroup(const QString& aEntry);

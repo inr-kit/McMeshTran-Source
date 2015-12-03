@@ -177,6 +177,9 @@ void MCMESHTRANGUI::initialize( CAM_Application* app )
     createAction( lgReadTRIPOLIFmesh,
                   tr("Read TRIPOLI output file"),QIcon(), tr("Read TRIPOLI output file"),
                   tr("Read TRIPOLI output file"),0, aParent,false,this,SLOT( onProcess() ) );
+    createAction( lgCompareDifference,"Compute Difference", QIcon(), "Compute Difference",
+                  "Compute Difference", 0, aParent, false, this, SLOT( onProcess() ) );
+
 
 
     createAction( lgCreateGroup,"Create Group", QIcon(), "Create Group",
@@ -257,6 +260,8 @@ void MCMESHTRANGUI::initialize( CAM_Application* app )
     createMenu( lgScaleMesh, aMenuId, 10 );
     createMenu( lgMultiplyFactor, aMenuId, 10 );
     createMenu( lgInterpolateMesh, aMenuId, 10 );
+    createMenu( lgCompareDifference, aMenuId, 10 );
+
 
     createMenu( lgExperiment, aMenuId, 10 );
 
@@ -293,6 +298,8 @@ void MCMESHTRANGUI::initialize( CAM_Application* app )
     mgr->insert(action(lgTranslateMesh),aOpId , 0);
     mgr->insert(action(lgRotateMesh),aOpId , 0);
     mgr->insert(action(lgInterpolateMesh),aOpId , 0);
+    mgr->insert(action(lgCompareDifference), aOpId , 0);
+
     int aExpId = mgr->insert("Export", -1, -1);
     mgr->insert(action(lgExport2MED), aExpId, 0);
 #ifdef WITH_CGNS
@@ -353,6 +360,8 @@ void MCMESHTRANGUI::initialize( CAM_Application* app )
     mgr->setRule( action( lgRotateMesh ), rule +
                   " and isMesh and selcount=1 " );
     mgr->setRule( action( lgInterpolateMesh ), rule +
+                  " and isMesh and selcount=2 " );
+    mgr->setRule( action( lgCompareDifference ), rule +
                   " and isMesh and selcount=2 " );
 
 
@@ -572,6 +581,9 @@ LightApp_Operation* MCMESHTRANGUI::createOperation( const int id ) const
     return new MCMESHTRANGUI_ReadTRIPOLIFmeshOp();
   case lgExportMesh2Abaqus:
       return new MCMESHTRANGUI_ExportMesh2AbaqusOp();
+  case lgCompareDifference:
+    return new MCMESHTRANGUI_CompareDifferenceOp();
+
   default:
       return 0;
   }

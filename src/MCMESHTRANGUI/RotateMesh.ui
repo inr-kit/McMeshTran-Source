@@ -245,7 +245,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Angle (radian)</string>
+     <string>Angle (degree)</string>
     </property>
    </widget>
   </widget>

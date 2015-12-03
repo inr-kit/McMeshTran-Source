@@ -1073,3 +1073,49 @@ void MCMESHTRANGUI_ExportMesh2AbaqusOp::startOperation()
 }
 
 
+
+//###########CompareDifferenceOp#################
+
+MCMESHTRANGUI_CompareDifferenceOp::MCMESHTRANGUI_CompareDifferenceOp()
+  : MCMESHTRANGUI_Operation()
+//    myDlg( 0 )
+{
+}
+/*! Destructor */
+MCMESHTRANGUI_CompareDifferenceOp::~MCMESHTRANGUI_CompareDifferenceOp()
+{
+//  if ( myDlg )
+//    delete myDlg;
+}
+/*! Returns Operation dialog */
+MCMESHTRANGUI_TemplateDlg* MCMESHTRANGUI_CompareDifferenceOp::dlg() const
+{
+  if ( !myDlg )
+    const_cast<MCMESHTRANGUI_CompareDifferenceOp*>( this )->myDlg
+          = new MCMESHTRANGUI_CompareDifferenceDlg( module()->getApp()->desktop(), dataModel() );
+  return myDlg;
+}
+
+void MCMESHTRANGUI_CompareDifferenceOp::onApply()
+{
+    MCMESHTRANGUI_CompareDifferenceDlg * Dialog = dynamic_cast < MCMESHTRANGUI_CompareDifferenceDlg * > (dlg());
+    QString aName = Dialog->getNewName();
+    QString aEntry = Dialog->getEntry1();
+    QString bEntry = Dialog->getEntry2();
+    int aGroupID = Dialog->getGroupID();
+
+    if (aName.trimmed().isEmpty() || aEntry.trimmed().isEmpty() || bEntry.trimmed().isEmpty() || aGroupID < 0)
+    {
+        SUIT_MessageBox::warning( module()->getApp()->desktop(), QString("Warning"),
+                                  QString( "Name empty,  or no mesh or group selected!"));
+        abort();
+        return;
+    }
+    //call the method
+    if (!dataModel()->compareDifference(aEntry, bEntry, aName, aGroupID ))
+    {
+        SUIT_MessageBox::warning( module()->getApp()->desktop(), QString("Warning"),
+                                  QString( "Operation failed! "));
+        abort();
+    }
+}

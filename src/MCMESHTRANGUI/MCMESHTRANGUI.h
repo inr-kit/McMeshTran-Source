@@ -86,6 +86,7 @@ protected:
               lgExportMesh2Abaqus    = 925,
               lgSend2SMESH           = 926,
               lgReadTRIPOLIFmesh        = 927,
+              lgCompareDifference    = 928,
 
 
               lgCreateGroup             = 1001,
@@ -106,6 +107,7 @@ protected:
               lgTransparency            =1107,
               lgDisplayGEOMObjInPV      =1108,
               lgShadingWithWireframe    =1109,
+
 
               lgExperiment              =1999
 

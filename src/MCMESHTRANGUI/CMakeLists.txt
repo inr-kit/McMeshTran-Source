@@ -24,6 +24,7 @@ INCLUDE_DIRECTORIES(
   ${KERNEL_INCLUDE_DIRS}
   ${VTK_INCLUDE_DIRS}
   ${PROJECT_BINARY_DIR}/idl
+  ${PROJECT_BINARY_DIR}/src/MCMESHTRANGUI  #sorry, temperary folder for including ui files
   ${QT_INCLUDES}
   ${MED_INCLUDE_DIRS}
   ${CPPUNIT_INCLUDE_DIRS}
@@ -76,6 +77,37 @@ SET(_link_LIBRARIES
   ${QT_LIBRARIES}
   )
 
+
+
+# uic files / to be processed by pyuic
+SET(_pyuic_files
+        ReadMCNPFmesh.ui
+        ReadMCNPUmesh.ui
+        SumMeshes.ui
+        AverageMeshes.ui
+        ScaleMesh.ui
+        MultiplyFactor.ui
+        TranslateMesh.ui
+        RotateMesh.ui
+        InterpolateMesh.ui
+        CompareDifference.ui
+)
+
+# scripts / pyuic wrappings
+QT4_WRAP_UI(_uic_HEADERS ${_pyuic_files})
+
+# --- headers ---
+
+# header files / to be processed by moc
+SET(_moc_HEADERS
+        MCMESHTRANGUI.h
+        MCMESHTRANGUI_Operation.h
+        MCMESHTRANGUI_OperationImpl.h
+        MCMESHTRANGUI_Dialogs.h
+)
+# sources / moc wrappings
+QT4_WRAP_CPP(_moc_SOURCES ${_moc_HEADERS})
+
 # --- headers ---
 
 SET(MCMESHTRAN_HEADERS
@@ -94,35 +126,6 @@ SET(MCMESHTRAN_HEADERS
   )
 
 
-
-# uic files / to be processed by pyuic
-SET(_pyuic_files
-        ReadMCNPFmesh.ui
-        ReadMCNPUmesh.ui
-        SumMeshes.ui
-        AverageMeshes.ui
-        ScaleMesh.ui
-        MultiplyFactor.ui
-        TranslateMesh.ui
-        RotateMesh.ui
-        InterpolateMesh.ui
-)
-
-# scripts / pyuic wrappings
-QT4_WRAP_UI(_uic_HEADERS ${_pyuic_files})
-
-# --- headers ---
-
-# header files / to be processed by moc
-SET(_moc_HEADERS
-        MCMESHTRANGUI.h
-        MCMESHTRANGUI_Operation.h
-        MCMESHTRANGUI_OperationImpl.h
-        MCMESHTRANGUI_Dialogs.h
-)
-# sources / moc wrappings
-QT4_WRAP_CPP(_moc_SOURCES ${_moc_HEADERS})
-
 # sources / to compile
 
 # --- sources ---
@@ -140,6 +143,7 @@ SET(MCMESHTRAN_SOURCES
         VTKMEDCouplingFieldClient.cxx
         VTKMEDCouplingCMeshClient.cxx
         MCMESHTRANGUI_Displayer.cxx
+        ${_uic_HEADERS}
   ${_moc_SOURCES}
   ${_rcc_SOURCES}
   )

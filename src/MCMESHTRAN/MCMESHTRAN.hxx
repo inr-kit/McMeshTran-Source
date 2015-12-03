@@ -95,7 +95,7 @@ public:
     MCMESHTRAN_ORB::Mesh_ptr        rotateMesh(MCMESHTRAN_ORB::Mesh_ptr aMesh, const
                                                MCMESHTRAN_ORB::FixArray3 center,
                                                const MCMESHTRAN_ORB::FixArray3 vector,
-                                               CORBA::Double AngleInRadian, const char* Name)           throw (SALOME::SALOME_Exception);
+                                               CORBA::Double AngleInDegree, const char* Name)           throw (SALOME::SALOME_Exception);
     MCMESHTRAN_ORB::Mesh_ptr        scaleMesh(MCMESHTRAN_ORB::Mesh_ptr aMesh,
                                               CORBA::Double Factor, const char* Name)                   throw (SALOME::SALOME_Exception);
     MCMESHTRAN_ORB::Mesh_ptr        multiplyFactor(MCMESHTRAN_ORB::Mesh_ptr aMesh,
@@ -121,6 +121,8 @@ public:
     MCMESHTRAN_ORB::MeshGroup_ptr   importMED(const char* MEDFileName)                                  throw (SALOME::SALOME_Exception);
     MCMESHTRAN_ORB::MeshGroup_ptr   importAbaqus(const char* AbaqusFileName)                            throw (SALOME::SALOME_Exception);
     void                            exportMesh2Abaqus(const MCMESHTRAN_ORB::MeshList& aMeshList,const char* FileName ) throw (SALOME::SALOME_Exception);
+    MCMESHTRAN_ORB::Mesh_ptr        compareDifference(MCMESHTRAN_ORB::Mesh_ptr aMesh,
+                                              MCMESHTRAN_ORB::Mesh_ptr bMesh, const char* Name)         throw (SALOME::SALOME_Exception);
     void                            unittest();
 
 public:

@@ -591,3 +591,23 @@ void MCMESHTRANGUI_TransparencyDlg::ValueHasChanged( int newValue )
 }
 
 
+//###########CompareDifferenceDlg###############//
+
+MCMESHTRANGUI_CompareDifferenceDlg::MCMESHTRANGUI_CompareDifferenceDlg(QWidget*parent, MCMESHTRANGUI_DataModel * dm )
+    :MCMESHTRANGUI_TemplateDlg(parent)
+{
+    setupUi(this);
+    this->dm = dm;
+    aCombobox = comp_cb_mt1;
+    bCombobox = comp_cb_mt2;
+    aLineEdit = comp_le_nmt;
+    gCombobox = comp_cb_gp;
+//    updateNameList();
+    connect(this->dm->getMCMESHTRANGUImodule(),SIGNAL(selectChg()),this,SLOT(OnSelectGroup()) ,Qt::UniqueConnection);
+
+}
+MCMESHTRANGUI_CompareDifferenceDlg::~MCMESHTRANGUI_CompareDifferenceDlg()
+{
+}
+
+

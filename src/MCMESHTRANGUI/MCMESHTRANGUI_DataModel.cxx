@@ -599,7 +599,7 @@ bool MCMESHTRANGUI_DataModel::translateMesh(const QString&  aEntry, const double
  * \brief rotate the Mesh
  *  rotate the mesh according to a axis and a angle,
  *  the axis is form by a fix point called \a center and a 3D \a vector
- *  the angle is in radian, 2PI for 360degree.
+ *
  * \param aMesh mesh to be rotate
  * \param center fix point in the axis
  * \param vector direction of the axis, doesn't matter if normalized or not
@@ -1852,7 +1852,7 @@ bool  MCMESHTRANGUI_DataModel::sendMesh2SMESH(const QStringList& aList)
 //            ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDCouplingUMesh> aUMesh
 //                    =ParaMEDMEM::MEDCouplingUMeshClient::New(aUMeshIOR);
             //write the mesh into a temp file
-            QString  aTempDir = "tmpfilemcmeshtran2smesh.med";
+            QString  aTempDir = "/tmp/tmpfilemcmeshtran2smesh.med";
             QFile::remove(aTempDir); //remove the file first if any
             try {
                 engine->export2MED(aMesh, aTempDir.toLatin1());
@@ -1882,4 +1882,61 @@ bool  MCMESHTRANGUI_DataModel::sendMesh2SMESH(const QStringList& aList)
     return true;
 }
 
+
+bool MCMESHTRANGUI_DataModel::compareDifference(const QString&  aEntry,  const QString&  bEntry, const QString&  Name, const int GroupID  )
+{
+    if (Name.trimmed().isEmpty() )
+    {
+        MESSAGE("Name is empty!");
+        return false;
+    }
+    //get engine and studyID
+    MCMESHTRAN_ORB::MCMESHTRAN_Gen_var engine = MCMESHTRANGUI::GetMCMESHTRANGen();
+    const int studyID = getStudyID();
+    if ( studyID && !CORBA::is_nil( engine ) )
+    {
+        //find object and get the mesh
+        MCMESHTRANGUI_DataObject * aObj = findObject(aEntry);
+        MCMESHTRANGUI_DataObject * bObj = findObject(bEntry);
+        if (!aObj || !bObj)
+        {
+            MESSAGE("Cannot find object in study!");
+            return false;
+        }
+        MCMESHTRAN_ORB::Mesh_var aMesh = aObj->getMesh();
+        MCMESHTRAN_ORB::Mesh_var bMesh = bObj->getMesh();
+        if (aMesh->_is_nil() || bMesh->_is_nil())
+        {
+            MESSAGE("Mesh is nil!");
+            return false;
+        }
+        //get the return mesh after comparing
+        MCMESHTRAN_ORB::Mesh_var cMesh;
+        try
+        {
+            cMesh = engine->compareDifference(aMesh, bMesh, Name.toLatin1());
+            if (cMesh->_is_nil())
+            {
+                MESSAGE("Return mesh is nil!");
+                return false;
+            }
+        }
+        catch (SALOME::SALOME_Exception &ex)
+        {
+            MESSAGE("Compute difference failed: " << ex.details.text)  ;
+            return false;
+        }
+        //get the group which the mesh to be append
+        MCMESHTRAN_ORB::MeshGroup_var aGroup = engine->getGroup(studyID, GroupID);  //find the group
+        if (aGroup->_is_nil())
+        {
+            MESSAGE("Cannot find the group with GroupID!");
+            return false;
+        }
+        aGroup->appendMesh(cMesh._retn());
+        return true;
+    }
+    MESSAGE("Errors in study or in engine!");
+    return false;
+}
 

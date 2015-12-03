@@ -29,6 +29,7 @@
 #include "ui_TranslateMesh.h"
 #include "ui_RotateMesh.h"
 #include "ui_ReadMCNPUmesh.h"
+#include "ui_CompareDifference.h"
 
 #include <QDialog>
 #include <QWidget>
@@ -206,6 +207,17 @@ private slots:
   void ValueHasChanged( int ) ;
 
 };
+
+
+//###########CompareDifferenceDlg###############//
+class MCMESHTRANGUI_CompareDifferenceDlg : public  MCMESHTRANGUI_TemplateDlg, Ui::MCMESHTRANGUI_CompareDifferenceDlg
+{
+    Q_OBJECT
+public:
+    MCMESHTRANGUI_CompareDifferenceDlg(QWidget*parent, MCMESHTRANGUI_DataModel * dm );
+    virtual             ~MCMESHTRANGUI_CompareDifferenceDlg();
+};
+
 
 
 #endif   //MCMESHTRANGUI_DIALOGS_H

@@ -69,8 +69,8 @@ private:
     bool    read_part();  //read a part and return as a mesh
     bool    read_instance();//read a instance and return as a mesh
     bool    read_assembly(); //read the assembly and return a list of mesh
-    bool    read_nodes (vector <double > & aCorVec);  //read node and return the node list
-    bool    read_elements(vector <int> & Connectivity, vector <int> & NodalConnIndex );  //read the element connectivities and return the list
+    bool    read_nodes (vector <double > & aCorVec, int &aInitNodeIdx);  //read node and return the node list
+    bool    read_elements(vector <int> & Connectivity, vector <int> & NodalConnIndex, const int & aInitNodeIdx );  //read the element connectivities and return the list
     bool    skipUnknown();
 
     AbqLineType         getLineAndCheck();  // get a line to currentLine and check the line type

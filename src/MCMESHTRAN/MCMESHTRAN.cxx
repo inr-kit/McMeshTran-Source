@@ -545,7 +545,7 @@ CORBA::Boolean  MCMESHTRAN::checkMeshConsistency(MCMESHTRAN_ORB::Mesh_ptr aMesh,
     try
     {
         //check equal or not
-        isEq = aUMesh->isEqualIfNotWhy(bUMesh, 1e-12, aTmpStr);
+        isEq = aUMesh->isEqualWithoutConsideringStr(bUMesh, 1e-12/*, aTmpStr*/);
     }
     catch(INTERP_KERNEL::Exception &ex)
     {
@@ -1005,6 +1005,8 @@ MCMESHTRAN_ORB::Mesh_ptr        MCMESHTRAN::interpolateCGNSMesh(MCMESHTRAN_ORB::
     QString atmpCGNSMesh = aTmpDir + QString ("tmpfileInterpolateMeshMesh.cgns");
     QString atmpCGNSOutField = aTmpDir + QString("tmpfileInterpolateMeshOutField.cgns");
     //export mesh and field to CGNS files
+    QFile::remove (atmpCGNSField);
+    QFile::remove (atmpCGNSMesh);
     export2CGNS(source, atmpCGNSField.toLatin1());
     export2CGNS(target, atmpCGNSMesh.toLatin1());
     //write the script
@@ -1307,8 +1309,9 @@ void MCMESHTRAN::export2CGNS(MCMESHTRAN_ORB::Mesh_ptr aMesh, const char* FileNam
     vector <double > theField;
     vector <double > bTuple;
 
-    ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::DataArrayDouble > aFieldDataArray
-            = aField_ptr->getArray();
+//    ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::DataArrayDouble > aFieldDataArray
+//            = aField_ptr->getArray();//lead to crash?? YES
+    ParaMEDMEM::DataArrayDouble * aFieldDataArray = aField_ptr->getArray(); //not using AutoRefCountObjectPtr
     bTuple.resize(aFieldDataArray->getNumberOfComponents());
     if (aField_ptr->getTypeOfField() != ParaMEDMEM::ON_CELLS && aField_ptr->getTypeOfField() != ParaMEDMEM::ON_NODES)
         THROW_SALOME_CORBA_EXCEPTION("Unsupported field type, should be ON_CELLS or ON_NODES!", SALOME::BAD_PARAM);
@@ -2744,6 +2747,63 @@ void  MCMESHTRAN::exportMesh2Abaqus(const MCMESHTRAN_ORB::MeshList& aMeshList,co
 }
 
 
+MCMESHTRAN_ORB::Mesh_ptr        MCMESHTRAN::compareDifference(MCMESHTRAN_ORB::Mesh_ptr aMesh,
+                                          MCMESHTRAN_ORB::Mesh_ptr bMesh, const char* Name)  throw (SALOME::SALOME_Exception)
+{
+    if (aMesh->_is_nil() || bMesh->_is_nil())
+        THROW_SALOME_CORBA_EXCEPTION("comparing with nil mesh!", SALOME::BAD_PARAM);
+    if (*Name == 0)
+        THROW_SALOME_CORBA_EXCEPTION("a empty Name!", SALOME::BAD_PARAM);
+    MESSAGE ("compute differences : " << aMesh->getName() << " and " << bMesh->getName());
+
+    //perform a series of checking
+//    if (strcmp(aMesh->getType(), bMesh->getType()) != 0)
+//        THROW_SALOME_CORBA_EXCEPTION("Two Meshes have different type", SALOME::BAD_PARAM);
+    if (aMesh->getField()->_is_nil() ||  bMesh->getField()->_is_nil() )
+        THROW_SALOME_CORBA_EXCEPTION("Mesh has nil field!", SALOME::BAD_PARAM);
+//    if (!checkMeshConsistency(aMesh, bMesh))
+//        THROW_SALOME_CORBA_EXCEPTION("Two Meshes are not consistent", SALOME::BAD_PARAM);
+
+
+    //see SALOME CALCULATOR::add()
+    ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDCouplingFieldDouble> aField_ptr
+            =ParaMEDMEM::MEDCouplingFieldDoubleClient::New(aMesh->getField());
+    ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDCouplingFieldDouble> bField_ptr
+            =ParaMEDMEM::MEDCouplingFieldDoubleClient::New(bMesh->getField());
+    ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDCouplingFieldDouble> cField_ptr;
+    ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDCouplingFieldDouble> dField_ptr;
+    //copy the mesh and name
+    ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDCouplingFieldDouble>  newField_ptr= bField_ptr->deepCpy();
+    newField_ptr->setMesh(aField_ptr->getMesh());
+
+    try
+    {
+        cField_ptr = ParaMEDMEM::MEDCouplingFieldDouble::SubstractFields(aField_ptr, newField_ptr);
+        cField_ptr->getArray()->abs();
+        dField_ptr = ParaMEDMEM::MEDCouplingFieldDouble::DivideFields(cField_ptr, aField_ptr);
+        dField_ptr->setName("Difference");
+    }
+    catch(INTERP_KERNEL::Exception &ex)
+    {
+        THROW_SALOME_CORBA_EXCEPTION( ex.what(), SALOME::BAD_PARAM);
+    }
+
+    // create CORBA field from c++ toField. give property to servant (true)
+    ParaMEDMEM::MEDCouplingFieldDoubleServant *myFieldDoubleI=new ParaMEDMEM::MEDCouplingFieldDoubleServant(dField_ptr);
+    SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_ptr myFieldIOR = myFieldDoubleI->_this();
+
+    //create new mesh
+    //!!!!!!!ATTENTION!!!!!!!!!!
+    //NPS has no more meaning for this results now, just to give it a value.
+    Mesh * aNewMesh = new Mesh (Name, genId(), aMesh->getType(), min(aMesh->getNPS(), bMesh->getNPS()));
+    aNewMesh->setField(myFieldIOR);
+
+//    aField_ptr->decrRef();//???????
+//    bField_ptr->decrRef();
+
+    return aNewMesh->_this();
+}
+
 void MCMESHTRAN::unittest()
 {
 //    if (test())
@@ -2990,8 +3050,10 @@ throw (SALOME::SALOME_Exception)
 //    SrcField_ptr->setNature(ParaMEDMEM::RevIntegral);  //set as Reverse Integral field, because the field is Power Density or Flux Density
     ParaMEDMEM::MEDCouplingRemapper remapper;
     remapper.setPrecision(1e-12);
-    remapper.setIntersectionType(INTERP_KERNEL::Triangulation);  //using Trianulation method, see http://docs.salome-platform.org/salome_6_6_0/gui/MED/InterpKerIntersectors.html#interpolation3D
+
+//    remapper.setIntersectionType(INTERP_KERNEL::Triangulation);  //using Trianulation method, see http://docs.salome-platform.org/salome_6_6_0/gui/MED/InterpKerIntersectors.html#interpolation3D
     QString IntMethod;
+    NatureOfField FieldNat = SrcField_ptr->getNature(); // for backup the nature
     //source: volume average value on cells, target: on cell
     if (SrcField_ptr->getNature() == ParaMEDMEM::RevIntegral && solloc == MCMESHTRAN_ORB::on_cells)
     {
@@ -3002,28 +3064,33 @@ throw (SALOME::SALOME_Exception)
     else if (SrcField_ptr->getNature() == ParaMEDMEM::RevIntegral && solloc == MCMESHTRAN_ORB::on_nodes)
     {
         IntMethod = "P0P1";
-        remapper.setIntersectionType(INTERP_KERNEL::PointLocator);
+        SrcField_ptr->setNature(ParaMEDMEM::ConservativeVolumic);
+//       remapper.setIntersectionType(INTERP_KERNEL::PointLocator);
     }
     //source: volume average value on node, target: on cell
     else if (SrcField_ptr->getNature() == ParaMEDMEM::ConservativeVolumic && solloc == MCMESHTRAN_ORB::on_cells)
     {
+//        SrcField_ptr->setNature(ParaMEDMEM::RevIntegral);
         IntMethod = "P1P0";
-        remapper.setIntersectionType(INTERP_KERNEL::Triangulation);
+//        remapper.setIntersectionType(INTERP_KERNEL::Triangulation);
     }
     //source: volume average value on node, target: on node
     else if (SrcField_ptr->getNature() == ParaMEDMEM::ConservativeVolumic && solloc == MCMESHTRAN_ORB::on_nodes)
     {
         IntMethod = "P1P1";
-        remapper.setIntersectionType(INTERP_KERNEL::PointLocator);
+       remapper.setIntersectionType(INTERP_KERNEL::PointLocator);
     }
     else
        THROW_SALOME_CORBA_EXCEPTION( "Error in field Nature!", SALOME::BAD_PARAM);
 
     try
     {
+
         remapper.prepare(SrcField_ptr->getMesh(),TgtMesh_ptr, IntMethod.toStdString());  //using cell to cell remap
         newField_ptr = remapper.transferField(SrcField_ptr,/*default_value*/0.0);//Any target cell not intercepted by any source cell will have value set to 0.0
         newField_ptr->setName(FieldName);
+        NatureOfField tmpnat = newField_ptr->getNature();
+        SrcField_ptr->setNature(FieldNat);//might be changed
     }
     catch(INTERP_KERNEL::Exception &ex)
     {
